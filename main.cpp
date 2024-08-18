@@ -1,39 +1,40 @@
 #include "src/linked_list.hh"
+#include <iostream>
 
+#define NEXT cout << "\n\n\n"
+
+using std::cout, std::flush;
 
 int main() {
 	LinkedList list;
-	int option, value;
 
-	switch( option ) {
-	case 1:
-		std::cout << "Enter a value to insert: ";
-		std::cin >> value;
-		list.insert(value);
-		break;
-	case 2:
-		std::cout << "Enter a value to search: ";
-		std::cin >> value;
-		list.search(value);
-		break;
-	case 3:
-		std::cout << "Enter a value to remove: ";
-		std::cin >> value;
-		list.remove(value);
-		break;
-	case 4:
-		list.print();
-		break;
-	case 5:
-		list.printStatus();
-		break;
-	case 6:
-		std::cout << "Exiting...\n";
-		break;
-	default:
-		std::cout << "Invalid option. Please try again.\n";
-		break;
-	}
+	cout << "Inserting values: '10', '20'.\n";
+	list.insert(10);
+	list.insert(20);
+	cout << list.formatStatus() << '\n';
+	NEXT;
+
+	cout << "Searching value '10'.\n";
+	list.search(10);
+	cout << list.getInfo() << '\n';
+	cout << "Searching value '20'.\n";
+	list.search(20);
+	cout << list.getInfo() << '\n';
+	NEXT;
+
+	//cout << list.formatListOfElements();
+	NEXT;
+
+	cout << "Removing value '20'\n";
+	list.remove(20);
+	cout << list.getInfo() << '\n';
+	NEXT;
+
+	cout << list.formatListOfElements(true);
+	NEXT;
+
+	cout << list.formatStatus(true) << flush;
+	NEXT;
 
 	return 0;
 }
