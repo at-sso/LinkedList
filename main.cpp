@@ -30,7 +30,7 @@ int main() {
 	cout << list.getInfo() << '\n';
 	NEXT;
 
-	cout << list.formatListOfElements(true);
+	//cout << list.formatListOfElements(true);
 	NEXT;
 
 	cout << list.formatStatus(true) << flush;

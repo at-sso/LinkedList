@@ -261,6 +261,7 @@ public:
 	 *
 	 * If the list is empty, this method will not print anything.
 	 */
+	__declspec( deprecated )
 	string formatListOfElements(bool showBackup = false) {
 		if( isEmpty() ) return outputInfo;
 
