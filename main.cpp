@@ -6,35 +6,58 @@
 using std::cout, std::flush;
 
 int main() {
-	LinkedList list;
+    int option;
+    int16_t value;
 
-	cout << "Inserting values: '10', '20'.\n";
-	list.insert(10);
-	list.insert(20);
-	cout << list.formatStatus() << '\n';
-	NEXT;
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Insert an element\n";
+        cout << "2. Search for an element\n";
+        cout << "3. Remove an element\n";
+        cout << "4. Display list status\n";
+        cout << "5. Exit\n";
+        cout << "Enter your option: ";
+        std::cin >> option;
 
-	cout << "Searching value '10'.\n";
-	list.search(10);
-	cout << list.getInfo() << '\n';
-	cout << "Searching value '20'.\n";
-	list.search(20);
-	cout << list.getInfo() << '\n';
-	NEXT;
+        switch (option) {
+            case 1:
+                cout << "Enter a value to insert: ";
+                std::cin >> value;
+                list.insert(value);
+                cout << list.getInfo();
+                break;
 
-	//cout << list.formatListOfElements();
-	NEXT;
+            case 2:
+                cout << "Enter a value to search: ";
+                std::cin >> value;
+                if (list.search(value)) {
+                    cout << list.getInfo();
+                } else {
+                    cout << list.getInfo();
+                }
+                break;
 
-	cout << "Removing value '20'\n";
-	list.remove(20);
-	cout << list.getInfo() << '\n';
-	NEXT;
+            case 3:
+                cout << "Enter a value to remove: ";
+                std::cin >> value;
+                list.remove(value);
+                cout << list.getInfo();
+                break;
 
-	//cout << list.formatListOfElements(true);
-	NEXT;
+            case 4:
+                cout << list.formatStatus();
+                break;
 
-	cout << list.formatStatus(true) << flush;
-	NEXT;
+            case 5:
+                cout << "Exiting the program.\n";
+                break;
 
-	return 0;
+            default:
+                cout << "Invalid option. Please try again.\n";
+                break;
+        }
+    } while (option != 5);
+
+    return 0;
 }
+
