@@ -23,5 +23,8 @@
     <ClInclude Include="src\linked_list.hh">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\util.hh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

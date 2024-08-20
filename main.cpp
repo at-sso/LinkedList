@@ -1,63 +1,62 @@
 #include "src/linked_list.hh"
+#include "src/util.hh"
+#include <cstdint>
 #include <iostream>
+#include <string>
 
-#define NEXT cout << "\n\n\n"
-
-using std::cout, std::flush;
+using std::cout, std::cin, std::flush;
+using std::string;
+LinkedList list;
 
 int main() {
-    int option;
-    int16_t value;
+	int16_t option = 0, value = 0;
+	string extraMsg = "";
+	bool mainLoop = true;
 
-    do {
-        cout << "\nMenu:\n";
-        cout << "1. Insert an element\n";
-        cout << "2. Search for an element\n";
-        cout << "3. Remove an element\n";
-        cout << "4. Display list status\n";
-        cout << "5. Exit\n";
-        cout << "Enter your option: ";
-        std::cin >> option;
+	auto inputHandler = [](int16_t& v) {
+		while( true ) {
+			cout << "\n> " << flush; cin >> v;
+			if( isCapturedValueInvalid() ) {
+				cout << "Captured value is invalid!"; continue;
+			} else return true;
+		}
+		};
 
-        switch (option) {
-            case 1:
-                cout << "Enter a value to insert: ";
-                std::cin >> value;
-                list.insert(value);
-                cout << list.getInfo();
-                break;
+	do {
+		// "Clears" the screen.
+		cout << "\x1B[2J\x1B[H" << flush;
 
-            case 2:
-                cout << "Enter a value to search: ";
-                std::cin >> value;
-                if (list.search(value)) {
-                    cout << list.getInfo();
-                } else {
-                    cout << list.getInfo();
-                }
-                break;
+		cout << "Menu:\n"
+			<< "1. Insert an element\n"
+			<< "2. Search for an element\n"
+			<< "3. Remove an element\n"
+			<< "4. Display list status\n"
+			<< "0. Exit\n"
+			<< extraMsg
+			<< list.getInfo();
 
-            case 3:
-                cout << "Enter a value to remove: ";
-                std::cin >> value;
-                list.remove(value);
-                cout << list.getInfo();
-                break;
+		if( !inputHandler(option) ) continue;
 
-            case 4:
-                cout << list.formatStatus();
-                break;
+		switch( option ) {
+		case 0: cout << "bye bye!" << flush; mainLoop = false; break;
+		default: extraMsg= "Invalid option. Please try again.\n"; continue;
 
-            case 5:
-                cout << "Exiting the program.\n";
-                break;
+		case 1:
+			cout << "Enter a value to insert.";
+			if( inputHandler(value) ) list.insert(value); break;
 
-            default:
-                cout << "Invalid option. Please try again.\n";
-                break;
-        }
-    } while (option != 5);
+		case 2:
+			cout << "Enter a value to search.";
+			if( inputHandler(value) ) list.search(value); break;
 
-    return 0;
+		case 3:
+			cout << "Enter a value to remove.";
+			if( inputHandler(value) ) list.remove(value); break;
+
+		case 4: list.formatListOfElements(); break;
+		}
+		extraMsg = "";
+	} while( mainLoop );
+
+	return 0;
 }
-
