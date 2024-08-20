@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-using std::cout, std::cin, std::flush;
+using std::cout, std::cin, std::endl, std::flush;
 using std::string;
 LinkedList list;
 
@@ -38,7 +38,7 @@ int main() {
 		if( !inputHandler(option) ) continue;
 
 		switch( option ) {
-		case 0: cout << "bye bye!" << flush; mainLoop = false; break;
+		case 0: cout << "bye bye!" << endl; mainLoop = false; break;
 		default: extraMsg= "Invalid option. Please try again.\n"; continue;
 
 		case 1:
