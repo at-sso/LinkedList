@@ -52,8 +52,8 @@ struct Node {
  */
 class LinkedList {
 private:
-	shared_ptr<Node> head;           /// Pointer to the first node in the list
-	int16_t count;                   /// Number of elements in the list
+	shared_ptr<Node> nodePtr;        /// Pointer to the first node in the list
+	int16_t listCount;               /// Number of elements in the list
 	string outputInfo;               /// String used to store output information for debugging and status reports
 
 	/**
@@ -62,7 +62,11 @@ private:
 	 * @param value The value to check.
 	 * @return true if the value exceeds `INT16_MAX`, false otherwise.
 	 */
-	bool isMax(const int16_t& value) {
+	bool isMax(const int16_t& value, string t = "") {
+		if( value < 0 || value >= LIMIT ) {
+			outputInfo = "Error: Invalid index for " + t + " element.";
+			return true;
+		}
 		if( value >= INT16_MAX ) {
 			outputInfo = "Error: The input value is beyond limits.";
 			return true;
@@ -76,7 +80,7 @@ public:
 	 *
 	 * Initializes the list with `head` set to `EMPTY_VALUE` and `count` set to 0.
 	 */
-	LinkedList() : head(EMPTY_VALUE), count(0), outputInfo("") {}
+	LinkedList() : nodePtr(EMPTY_VALUE), listCount(0), outputInfo("") {}
 
 	/**
 	 * @brief Retrieves the current information stored in the `outputInfo` stream.
@@ -94,7 +98,7 @@ public:
 	 * @return true if the list contains the maximum number of elements, false otherwise.
 	 */
 	bool isFull(const string& message = "") {
-		if( count >= LIMIT ) {
+		if( listCount >= LIMIT ) {
 			outputInfo = "Error: The list is full. " + message;
 			return true;
 		}
@@ -108,7 +112,7 @@ public:
 	 * @return true if the list contains no elements, false otherwise.
 	 */
 	bool isEmpty(const string& message = "") {
-		if( head == EMPTY_VALUE ) {
+		if( nodePtr == EMPTY_VALUE ) {
 			outputInfo = "Error: The list is empty. " + message;
 			return true;
 		}
@@ -122,21 +126,22 @@ public:
 	 */
 	void reset() {
 		if( isEmpty() ) return;
-
-		auto& current = head;
-		while( current != EMPTY_VALUE ) {
-			for( int16_t i = 0; i < LIMIT; ++i ) {
-				current->mainData[i] = make_shared<int16_t>(0);
-				current->backupData[i] = make_shared<int16_t>(0);
+		shared_ptr<Node> current = nodePtr;
+		while( current ) {
+			for( int16_t i = 0; i < current->size; ++i ) {
+				*current->mainData[i] = 0;
+				*current->backupData[i] = 0;
 			}
 			current = current->next;
 		}
+		outputInfo = "Values were reset.";
 	}
 
 	/**
 	 * @brief Inserts a new value at the beginning of the list.
 	 *
 	 * @param value The value to insert into the list.
+	 * @return The number of elements in the list.
 	 *
 	 * If the list is full or if the value exceeds `INT16_MAX`, the insertion will not occur.
 	 */
@@ -144,16 +149,15 @@ public:
 		if( isFull("Cannot insert more elements.") ) return;
 		if( isMax(value) ) return;
 
-		if( head == EMPTY_VALUE || head->size == LIMIT ) {
-			auto newNode = make_shared<Node>();
-			newNode->mainData[0] = make_shared<int16_t>(value);
-			newNode->size = 1;
-			newNode->next = head;
-			head = newNode;
-		} else {
-			head->mainData[head->size++] = make_shared<int16_t>(value);
-		}
-		count++;
+		shared_ptr<Node> newNode = make_shared<Node>();
+		*newNode->mainData[0] = value;
+		newNode->size = 1;
+
+		newNode->next = nodePtr;
+		nodePtr = newNode;
+		listCount++;
+
+		outputInfo = "Inserted value: '" + to_string(value) + "'.";
 	}
 
 	/**
@@ -167,15 +171,18 @@ public:
 	bool search(int16_t value) {
 		if( isMax(value) ) return false;
 
-		auto& current = head;
-		while( current != EMPTY_VALUE ) {
-			for( int16_t i = 0; i < current->size; i++ ) {
-				if( *( current->mainData[i] ) == value ) {
-					outputInfo = "Value found at memory address: " + Node::addrsOf(current) + " at index: " + to_string(i) + ".";
+		shared_ptr<Node> current = nodePtr;
+		int nodeIndex = 0;
+		while( current ) {
+			for( int16_t i = 0; i < current->size; ++i ) {
+				if( *current->mainData[i] == value ) {
+					outputInfo = "Value found at memory address: " + Node::addrsOf(current->mainData[i]) +
+						" at index: " + to_string(i) + " in node " + to_string(nodeIndex) + ".";
 					return true;
 				}
 			}
 			current = current->next;
+			nodeIndex++;
 		}
 		outputInfo = "Value not found.\n";
 		return false;
@@ -192,39 +199,19 @@ public:
 		if( isEmpty("Cannot remove any element.") ) return;
 		if( isMax(value) ) return;
 
-		auto& current = head;
-		shared_ptr<Node> previous = EMPTY_VALUE;
-
-		while( current != EMPTY_VALUE ) {
-			for( int16_t i = 0; i < current->size; i++ ) {
-				if( *( current->mainData[i] ) == value ) {
-					// Move the deleted value to backupData
-					current->backupData[i] = current->mainData[i];
-
-					// Shift the rest of the elements
-					for( int16_t j = i; j < current->size - 1; j++ ) {
-						current->mainData[j] = current->mainData[j + 1];
-					}
-
-					current->mainData[current->size - 1] = make_shared<int16_t>(0);
-					current->size--;
-					count--;
-
-					// Handle empty node
-					if( current->size == 0 && previous != EMPTY_VALUE ) {
-						previous->next = current->next;
-					} else if( current->size == 0 && previous == EMPTY_VALUE ) {
-						head = current->next;
-					}
-
-					outputInfo = "Element '" + to_string(value) + "' removed and backed up.\n";
+		shared_ptr<Node> current = nodePtr;
+		while( current ) {
+			for( int16_t i = 0; i < current->size; ++i ) {
+				if( *current->mainData[i] == value ) {
+					*current->backupData[i] = *current->mainData[i];
+					*current->mainData[i] = 0;
+					outputInfo = "Element '" + to_string(value) + "' removed and backed up.";
 					return;
 				}
 			}
-			previous = current;
 			current = current->next;
 		}
-		outputInfo = "Element not found.\n";
+		outputInfo = "Element '" + to_string(value) + "' not found.";
 	}
 
 	/**
@@ -234,23 +221,18 @@ public:
 	 */
 	void removeBackup(int16_t index) {
 		if( isEmpty("Cannot remove any backup element.") ) return;
+		if( isMax(index) ) return;
 
-		auto& current = head;
-		while( current != EMPTY_VALUE ) {
-			if( index < current->size ) {
-				// Shift elements to the left to remove the backup at the index
-				for( int16_t i = index; i < current->size - 1; i++ ) {
-					current->backupData[i] = current->backupData[i + 1];
-				}
-
-				// Clear the last position
-				current->backupData[current->size - 1] = make_shared<int16_t>(0);
-				outputInfo = "Backup element removed.\n";
+		shared_ptr<Node> current = nodePtr;
+		while( current ) {
+			if( *current->backupData[index] != 0 ) {
+				*current->backupData[index] = 0;
+				outputInfo = "Backup element at index " + to_string(index) + " removed.";
 				return;
 			}
 			current = current->next;
 		}
-		outputInfo = "Backup element not found.\n";
+		outputInfo = "Backup element at index " + to_string(index) + " not found.";
 	}
 
 	/**
@@ -261,28 +243,27 @@ public:
 	 *
 	 * If the list is empty, this method will not print anything.
 	 */
-	__declspec( deprecated )
 	string formatListOfElements(bool showBackup = false) {
 		if( isEmpty() ) return outputInfo;
 
-		auto& current = head;
-		outputInfo = "List elements:\n";
-		while( current != EMPTY_VALUE ) {
-			for( int16_t i = 0; i < current->size; i++ ) {
-				// Added debugging output to check the values before and after formatting
-				int16_t currentValue = *( current->mainData[i] );
-				outputInfo += "Debug: Original value: " + to_string(currentValue) + "\n";
+		stringstream ss;
+		shared_ptr<Node> current = nodePtr;
+		int nodeIndex = 0;
 
-				// Safeguard to ensure we are only reading values
-				outputInfo += "Data: " + to_string(currentValue) + " | Memory address: " + Node::addrsOf(current) + " at index: " + to_string(i) + "\n";
-
+		ss << "List elements:\n";
+		while( current ) {
+			for( int16_t i = 0; i < current->size; ++i ) {
+				ss << "Node " << nodeIndex << ", 'mainData' value: " << to_string(*current->mainData[i])
+					<< " | Memory address: " << Node::addrsOf(current->mainData[i]) << " at index: " << to_string(i) << "\n";
 				if( showBackup ) {
-					int16_t backupValue = *( current->backupData[i] );
-					outputInfo += "Backup: " + to_string(backupValue) + " | Memory address: " + Node::addrsOf(current) + " at index: " + to_string(i) + "\n";
+					ss << "'backupData': " << to_string(*current->backupData[i])
+						<< " | Memory address: " << Node::addrsOf(current->backupData[i]) << " at index: " << to_string(i) << "\n";
 				}
 			}
 			current = current->next;
+			nodeIndex++;
 		}
+		outputInfo = ss.str();
 		return outputInfo;
 	}
 
@@ -293,21 +274,27 @@ public:
 	 * @return A string representing the status of the list.
 	 */
 	string formatStatus(bool showBackup = false) {
-		outputInfo = "List status:\n";
-		outputInfo += "HEAD: " + Node::addrsOf(head) + "\n";
-		outputInfo += "AVAILABLE: " + string(isFull() ? "No" : "Yes") + "\n";
+		if( isEmpty() ) return outputInfo;
+
+		stringstream ss;
+		ss << "List status:\n";
+		ss << "HEAD: " << Node::addrsOf(nodePtr) << "\n";
+		ss << "AVAILABLE: " << ( isFull() ? "No" : "Yes" ) << "\n";
 
 		if( showBackup ) {
-			outputInfo += "Backup Data:\n";
-			auto& current = head;
-			while( current != EMPTY_VALUE ) {
-				for( int16_t i = 0; i < current->size; i++ ) {
-					outputInfo += "Backup: " + to_string(*( current->backupData[i] )) + " | Memory address: " + Node::addrsOf(current) + " at index: " + to_string(i) + "\n";
+			shared_ptr<Node> current = nodePtr;
+			int nodeIndex = 0;
+			while( current ) {
+				for( int16_t i = 0; i < current->size; ++i ) {
+					ss << "Node " << nodeIndex << ", 'backupData': " << to_string(*current->backupData[i])
+						<< " | Memory address: " << Node::addrsOf(current->backupData[i]) << " at index: " << to_string(i) << "\n";
 				}
 				current = current->next;
+				nodeIndex++;
 			}
 		}
 
+		outputInfo = ss.str();
 		return outputInfo;
 	}
 };
